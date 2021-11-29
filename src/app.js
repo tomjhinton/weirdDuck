@@ -73,7 +73,7 @@ window.addEventListener('resize', () =>{
 // Base camera
 const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
 camera.position.x = 10
-camera.position.y = 10
+camera.position.y = 7
 camera.position.z = 15
 scene.add(camera)
 
@@ -81,7 +81,7 @@ scene.add(camera)
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
 // controls.maxPolarAngle = Math.PI / 2 - 0.1
-//controls.enableZoom = false;
+
 
 /**
  * Renderer
