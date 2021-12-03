@@ -13,13 +13,38 @@ const scene = new THREE.Scene()
 
 const gtlfLoader = new GLTFLoader()
 
+import vertexShader from './shaders/vertex.glsl'
 
+import fragmentShader from './shaders/frag.glsl'
+
+
+const waterMaterial  = new THREE.ShaderMaterial({
+  transparent: true,
+  depthWrite: true,
+  uniforms: {
+    uTime: { value: 0},
+    uResolution: { type: 'v2', value: new THREE.Vector2() }
+  },
+  vertexShader: vertexShader,
+  fragmentShader: fragmentShader,
+  side: THREE.DoubleSide
+})
+
+let geometry = new THREE.PlaneGeometry(13, 13,128,128)
+
+
+let mesh = new THREE.Mesh(geometry, waterMaterial)
+mesh.position.set( 0.5467526912689209,
+-1.2203081846237183, -0.7569929957389832)
+mesh.rotation.x = Math.PI / 2 
+mesh.position.y-=2.8
+
+scene.add(mesh)
 // console.log(riverMaterial)
-let sceneGroup
-
-
+let sceneGroup, mixer, duck, water
+const morphMeshes = [];
 gtlfLoader.load(
-  'duck.glb',
+  'duck3.glb',
   (gltf) => {
     console.log(gltf)
 
@@ -27,8 +52,51 @@ gtlfLoader.load(
     sceneGroup = gltf.scene
     sceneGroup.needsUpdate = true
     sceneGroup.position.y -= 3
+    sceneGroup.needsUpdate = true
+
+    sceneGroup.matrixWorldNeedsUpdate = true
+    console.log(sceneGroup)
     scene.add(sceneGroup)
 
+  //   duck = gltf.scene.children.find((child) => {
+  //   return child.name === 'duck'
+  // })
+  // duck.matrixWorldNeedsUpdate = true
+  // console.log(duck)
+
+  // const helper = new THREE.SkeletonHelper( sceneGroup );
+  // scene.add( helper );
+
+  // water = gltf.scene.children.find((child) => {
+  //   return child.name === 'water'
+  // })
+  // console.log(water)
+  //
+  // water.material = waterMaterial
+
+    sceneGroup.traverse((node) => {
+      if (node.isMesh && node.morphTargetInfluences) {
+        morphMeshes.push(node);
+        console.log(node)
+      }
+      // console.log(node.material)
+
+
+        node.matrixWorldNeedsUpdate = true
+        node.skinning = true
+        node.needsUpdate = true
+
+
+    })
+
+
+
+
+    var animations = gltf.animations;
+
+    mixer = new THREE.AnimationMixer( gltf.scene );
+	var action = mixer.clipAction( gltf.animations[ 1 ] );
+	action.play();
 
 
 
@@ -104,14 +172,21 @@ const clock = new THREE.Clock()
 
 const tick = () =>{
 
-  const elapsedTime = clock.getElapsedTime()
+
+  if ( mixer ){
+    // console.log(mixer)
+    mixer.update( clock.getDelta() )
+  // console.log(mixer)
+  }
+
+    const elapsedTime = clock.getElapsedTime()
 
 
   // Update controls
   controls.update()
 
 
-  // riverMaterial.fragmentShader = fragArray[riverSelected]
+  waterMaterial.uniforms.uTime.value = elapsedTime
 
 
 
